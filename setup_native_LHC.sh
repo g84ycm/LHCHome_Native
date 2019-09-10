@@ -70,9 +70,20 @@ fi
 # enabling user namespace permanently for every user
 case "$1" in
 	"ubuntu")
-	          #namespaces working out of the box on ubuntu 18.04
+	          #namespaces working out of the box on ubuntu 18.04.3, nothing to do
 	  ;;
 esac
+
+# test namespace (taken from David Cameron)
+namespace_check="$(sudo /cvmfs/atlas.cern.ch/repo/containers/sw/singularity/x86_64-el7/current/bin/singularity exec -B /cvmfs /cvmfs/atlas.cern.ch/repo/containers/fs/singularity/x86_64-slc6 hostname)"
+echo "${namespace_check}"
+if [[ namespace_check == *"Failed"* ]]
+then
+    echo -e "\e[0;31mSetting up namespace did not work, ABORTING!\e[0m"
+    exit
+else
+    echo -e "\e[0;32mNamespace working correctly!\e[0m"
+fi
 
 # cgroups (taken from Laurence's scripts from http://lhcathome.cern.ch/lhcathome/download/create-boinc-cgroup and http://lhcathome.cern.ch/lhcathome/download/boinc-client.service)
 echo '#!/bin/bash
@@ -119,13 +130,3 @@ WantedBy=multi-user.target
 # make changes affective
 sudo systemctl daemon-reload
 sudo systemctl restart boinc-client
-# test namespace (taken from David Cameron)
-namespace_check="$(sudo /cvmfs/atlas.cern.ch/repo/containers/sw/singularity/x86_64-el7/current/bin/singularity exec -B /cvmfs /cvmfs/atlas.cern.ch/repo/containers/fs/singularity/x86_64-slc6 hostname)"
-echo "${namespace_check}"
-if [[ namespace_check == *"Failed"* ]]
-then
-    echo -e "\e[0;31mSetting up namespace did not work, ABORTING!\e[0m"
-    exit
-else
-    echo -e "\e[0;32mNamespace working correctly!\e[0m"
-fi
